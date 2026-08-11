@@ -13,12 +13,13 @@ jobs:
     - name: Configure ngrok
       run: ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
 
-    - name: Enable RDP & Fix User
+    - name: Enable RDP & Create RDP User
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        $UserAccount = Get-LocalUser -Name "runneradmin"
-        $UserAccount | Set-LocalUser -Password (ConvertTo-SecureString "MyPassword123!" -AsPlainText -Force)
+        net user adminuser MyPassword123! /add
+        net localgroup Administrators adminuser /add
+        net localgroup "Remote Desktop Users" adminuser /add
 
     - name: Start ngrok Tunnel
       run: ngrok tcp 3389
